@@ -81,6 +81,9 @@ const signalSchema = new mongoose.Schema({
 
 const Signal = conn2.model('Signal', signalSchema);
 
+const strategyInfoSchema = new mongoose.Schema({}, { collection: 'strategy_info', strict: false });
+const StrategyInfo = conn2.model('StrategyInfo', strategyInfoSchema);
+
 app.get('/api/market/:symbol', async (req, res) => {
   try {
     const { symbol } = req.params;
@@ -341,28 +344,24 @@ app.get('/api/stats/:symbol/:strategy', async (req, res) => {
 
 app.get('/api/strategy-info/:symbol/:strategy', async (req, res) => {
   try {
-    const { symbol, strategy } = req.params;
-    const signals = await Signal.find({
-      symbol: symbol.toLowerCase(),
-      strategy_id: strategy
-    }).sort({ date: -1 }).limit(1);
-
-    if (signals.length === 0) {
+    const { strategy } = req.params;
+    
+    const info = await StrategyInfo.findOne({ strategy_id: strategy });
+    
+    if (!info) {
       return res.json({
         name: strategy,
         description: 'No description available',
-        dataUpdateTime: null,
-        signalUpdateTime: null
+        summary: '',
+        execution_rule: ''
       });
     }
 
-    const signal = signals[0];
     res.json({
-      name: signal.strategy_name || strategy,
-      file: signal.strategy_file || '',
-      description: `Strategy ${strategy} - ${signal.strategy_name || ''}`,
-      dataUpdateTime: signal.data_updated_at,
-      signalUpdateTime: signal.signal_updated_at
+      name: info.strategy_id,
+      description: info.description || '',
+      summary: info.summary || '',
+      execution_rule: info.execution_rule || ''
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

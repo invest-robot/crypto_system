@@ -468,21 +468,16 @@ function App() {
       {strategyInfo && (
         <div className="strategy-info-section">
           <div className="strategy-desc-box">
-            <div className="strategy-desc-title">{strategyInfo.name}</div>
+            <div className="strategy-desc-title">
+              {lang === 'zh' ? '策略介绍' : 'Strategy Introduction'}
+            </div>
             <div className="strategy-desc-text">
-              File: {strategyInfo.file || 'N/A'}<br/>
-              Strategy ID: {strategy}<br/>
-              Trading with quantitative signals based on ETF flow analysis.
-            </div>
-          </div>
-          <div className="strategy-meta-box">
-            <div className="meta-item">
-              <span className="meta-label">{T[lang].dataUpdate}</span>
-              <span className="meta-value">{strategyInfo.dataUpdateTime ? new Date(strategyInfo.dataUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
-            </div>
-            <div className="meta-item">
-              <span className="meta-label">{T[lang].signalUpdate}</span>
-              <span className="meta-value">{strategyInfo.signalUpdateTime ? new Date(strategyInfo.signalUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+              <div className="strategy-desc-name">{strategyInfo.name}</div>
+              <div className="strategy-desc-summary">{strategyInfo.summary}</div>
+              <div className="strategy-desc-desc">{strategyInfo.description}</div>
+              <div className="strategy-desc-rule">
+                <span className="rule-label">{lang === 'zh' ? '执行规则' : 'Execution Rule'}:</span> {strategyInfo.execution_rule}
+              </div>
             </div>
           </div>
         </div>
