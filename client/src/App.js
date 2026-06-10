@@ -86,12 +86,12 @@ function App() {
   const [password, setPassword] = useState('crypto123');
   const [lang, setLang] = useState('zh');
   const [symbol, setSymbol] = useState('BTCUSDT');
-  const [strategy, setStrategy] = useState('strategy_2');
+  const [strategy, setStrategy] = useState('strategy_3');
   const [marketData, setMarketData] = useState([]);
   const [signals, setSignals] = useState([]);
   const [stats, setStats] = useState(null);
   const [equityCurve, setEquityCurve] = useState([]);
-  const [strategies, setStrategies] = useState(['strategy_1', 'strategy_2', 'strategy_3']);
+  const [strategies, setStrategies] = useState(['strategy_1', 'strategy_2', 'strategy_3'].sort());
   const [timeRange, setTimeRange] = useState('1M');
   const [chartInterval, setChartInterval] = useState('1h');
   const [strategyInfo, setStrategyInfo] = useState(null);
