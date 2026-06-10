@@ -26,10 +26,12 @@ function calculateMDD(equities) {
 }
 
 const MONGO_VNPY = `mongodb://${process.env.MONGO_VNPY_USER}:${process.env.MONGO_VNPY_PASS}@${process.env.MONGO_VNPY_HOST}:${process.env.MONGO_VNPY_PORT}/${process.env.MONGO_VNPY_DB}?authSource=admin`;
-const MONGO_CRYPTO = `mongodb://${process.env.MONGO_CRYPTO_USER}:${process.env.MONGO_CRYPTO_PASS}@${process.env.MONGO_CRYPTO_HOST}:${process.env.MONGO_CRYPTO_PORT}/${process.env.MONGO_CRYPTO_DB}?authSource=admin`;
+const MONGO_CRYPTO = `mongodb://${process.env.MONGO_CRYPTO_USER}:${process.env.MONGO_CRYPTO_PASS}@${process.env.MONGO_CRYPTO_HOST}:${process.env.MONGO_CRYPTO_PORT}/crypto_daily?authSource=admin`;
+const MONGO_STRATEGY_INFO = `mongodb://${process.env.MONGO_CRYPTO_USER}:${process.env.MONGO_CRYPTO_PASS}@${process.env.MONGO_CRYPTO_HOST}:${process.env.MONGO_CRYPTO_PORT}/crypto_strategy?authSource=admin`;
 
 const conn1 = mongoose.createConnection(MONGO_VNPY);
 const conn2 = mongoose.createConnection(MONGO_CRYPTO);
+const conn3 = mongoose.createConnection(MONGO_STRATEGY_INFO);
 
 conn1.asPromise()
   .then(() => console.log('Connected to vnpy'))
@@ -37,6 +39,9 @@ conn1.asPromise()
 conn2.asPromise()
   .then(() => console.log('Connected to crypto_daily'))
   .catch(err => console.error('Failed to connect to crypto_daily:', err.message));
+conn3.asPromise()
+  .then(() => console.log('Connected to crypto_strategy'))
+  .catch(err => console.error('Failed to connect to crypto_strategy:', err.message));
 
 const barDataSchema = new mongoose.Schema({
   symbol: String,
@@ -82,7 +87,7 @@ const signalSchema = new mongoose.Schema({
 const Signal = conn2.model('Signal', signalSchema);
 
 const strategyInfoSchema = new mongoose.Schema({}, { collection: 'strategy_info', strict: false });
-const StrategyInfo = conn2.model('StrategyInfo', strategyInfoSchema);
+const StrategyInfo = conn3.model('StrategyInfo', strategyInfoSchema);
 
 app.get('/api/market/:symbol', async (req, res) => {
   try {

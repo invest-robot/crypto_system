@@ -468,16 +468,10 @@ function App() {
       {strategyInfo && (
         <div className="strategy-info-section">
           <div className="strategy-desc-box">
-            <div className="strategy-desc-title">
-              {lang === 'zh' ? '策略介绍' : 'Strategy Introduction'}
-            </div>
             <div className="strategy-desc-text">
-              <div className="strategy-desc-name">{strategyInfo.name}</div>
-              <div className="strategy-desc-summary">{strategyInfo.summary}</div>
-              <div className="strategy-desc-desc">{strategyInfo.description}</div>
-              <div className="strategy-desc-rule">
-                <span className="rule-label">{lang === 'zh' ? '执行规则' : 'Execution Rule'}:</span> {strategyInfo.execution_rule}
-              </div>
+              <span className="strategy-name">{strategyInfo.name}</span>
+              <span className="strategy-summary">{strategyInfo.summary}</span>
+              <span className="strategy-desc">{strategyInfo.description}</span>
             </div>
           </div>
           <div className="strategy-meta-box">

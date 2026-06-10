@@ -247,60 +247,36 @@ body {
 
 .strategy-desc-box {
   flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: white;
   border-radius: 14px;
-  padding: 20px 24px;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-}
-
-.strategy-desc-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 14px 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .strategy-desc-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1.7;
 }
 
-.strategy-desc-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 6px;
-}
-
-.strategy-desc-summary {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffd700;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 4px 10px;
-  border-radius: 6px;
-  display: inline-block;
-  margin-bottom: 10px;
-}
-
-.strategy-desc-desc {
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 10px;
-}
-
-.strategy-desc-rule {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.rule-label {
+.strategy-name {
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: #1d1d1f;
+  font-size: 14px;
+}
+
+.strategy-summary {
+  background: #f0f0f5;
+  color: #666;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.strategy-desc {
+  color: #86868b;
 }
 
 .strategy-meta-box {
