@@ -480,6 +480,16 @@ function App() {
               </div>
             </div>
           </div>
+          <div className="strategy-meta-box">
+            <div className="meta-item">
+              <span className="meta-label">{T[lang].dataUpdate}</span>
+              <span className="meta-value">{strategyInfo.dataUpdateTime ? new Date(strategyInfo.dataUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+            </div>
+            <div className="meta-item">
+              <span className="meta-label">{T[lang].signalUpdate}</span>
+              <span className="meta-value">{strategyInfo.signalUpdateTime ? new Date(strategyInfo.signalUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+            </div>
+          </div>
         </div>
       )}
 
