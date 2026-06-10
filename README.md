@@ -45,7 +45,6 @@ MONGO_CRYPTO_USER=your_username
 MONGO_CRYPTO_PASS=your_password
 MONGO_CRYPTO_HOST=your_mongodb_host
 MONGO_CRYPTO_PORT=27024
-MONGO_CRYPTO_DB=crypto_daily
 ```
 
 ### 3. 安装依赖
@@ -62,7 +61,7 @@ npm run dev
 
 # 或分别启动
 npm run server  # 后端 5000 端口
-npm run client  # 前端 3000 端口
+npm run client  # 前端 3001 端口
 ```
 
 ### 5. 打开浏览器
@@ -91,15 +90,12 @@ npm run client  # 前端 3000 端口
 
 **查询示例：**
 ```javascript
-// 获取 btcusdt 1小时K线数据
 db.bar_data.find({
-  symbol: 'btcusdt',      // 小写
+  symbol: 'btcusdt',
   exchange: 'LOCAL',
   interval: '1h'
 }).sort({ datetime: -1 }).limit(500)
 ```
-
-**注意：** 前端支持大写 symbol（如 `BTCUSDT`），后端会自动转为小写查询。
 
 #### 2. btc_strategy (策略信号) - `crypto_daily` 数据库
 存储策略交易信号：
@@ -115,28 +111,36 @@ db.bar_data.find({
 | position | Number | 当前持仓 |
 | target_pos | Number | 目标持仓 |
 | price | Number | 信号价格 |
-| execution_price | Number | 执行价格 (可为 null) |
-| execute_time | Date | 执行时间 (可为 null) |
-| execute_time_global | String | 执行时间-全球时区 (如 `2026-05-23 07:00:00`) |
-| execute_time_asia | String | 执行时间-亚洲时区 (如 `2026-05-23 15:00:00`) |
-| btc_qty | Number | BTC 数量 |
+| execution_price | Number | 执行价格 |
+| execute_time_global | String | 执行时间-全球时区 |
+| execute_time_asia | String | 执行时间-亚洲时区 |
 | trade_qty | Number | 交易数量 |
 | equity | Number | 当前权益 |
 | initial_capital | Number | 初始资金 |
-| data_updated_at | Date | 数据更新时间 |
-| signal_updated_at | Date | 信号更新时间 |
-| position_hold | Number | 持仓数量 |
-| prev_position_hold | Number | 上次持仓数量 |
 | position_action | String | 持仓动作 (`open`, `close`, `hold`) |
 
-#### 查询示例
+**查询示例：**
 ```javascript
-// 获取 strategy_3 的所有交易信号
 db.btc_strategy.find({
   strategy_id: 'strategy_3',
   record_type: 'daily_signal',
   position_action: { $in: ['open', 'close'] }
 }).sort({ date: 1 })
+```
+
+#### 3. strategy_info (策略介绍) - `crypto_strategy` 数据库
+存储策略介绍信息：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| strategy_id | String | 策略ID |
+| description | String | 策略描述 |
+| summary | String | 杠杆/收益摘要 |
+| execution_rule | String | 执行规则 |
+
+**查询示例：**
+```javascript
+db.strategy_info.find({ strategy_id: 'strategy_3' })
 ```
 
 ## 功能
