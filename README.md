@@ -79,8 +79,8 @@ npm run client  # 前端 3000 端口
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| symbol | String | 交易对 (如 `btcusdt`) |
-| exchange | String | 交易所 (如 `LOCAL`) |
+| symbol | String | 交易对 (小写，如 `btcusdt`) |
+| exchange | String | 交易所 (`LOCAL`) |
 | interval | String | 时间周期 (`1h`, `4h`, `1d`) |
 | datetime | Date | K线时间 |
 | open_price | Number | 开盘价 |
@@ -88,6 +88,18 @@ npm run client  # 前端 3000 端口
 | low_price | Number | 最低价 |
 | close_price | Number | 收盘价 |
 | volume | Number | 成交量 |
+
+**查询示例：**
+```javascript
+// 获取 btcusdt 1小时K线数据
+db.bar_data.find({
+  symbol: 'btcusdt',      // 小写
+  exchange: 'LOCAL',
+  interval: '1h'
+}).sort({ datetime: -1 }).limit(500)
+```
+
+**注意：** 前端支持大写 symbol（如 `BTCUSDT`），后端会自动转为小写查询。
 
 #### 2. btc_strategy (策略信号) - `crypto_daily` 数据库
 存储策略交易信号：
