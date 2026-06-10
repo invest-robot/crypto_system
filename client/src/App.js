@@ -3,7 +3,7 @@ import { createChart } from 'lightweight-charts';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const TIME_RANGES = {
   '1D': { hours: 24, limit: 24 },
@@ -96,6 +96,8 @@ function App() {
   const [chartInterval, setChartInterval] = useState('1h');
   const [strategyInfo, setStrategyInfo] = useState(null);
   const [showTradeHistory, setShowTradeHistory] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
@@ -151,6 +153,7 @@ function App() {
 
   const fetchMarketData = async () => {
     try {
+      setError(null);
       const range = TIME_RANGES[timeRange];
       const res = await axios.get(`${API_BASE}/market/${symbol}`, {
         params: {
@@ -164,6 +167,7 @@ function App() {
       setMarketData(filtered);
     } catch (err) {
       console.error('Market data error:', err);
+      setError('Failed to load market data');
     }
   };
 
@@ -180,11 +184,15 @@ function App() {
 
   const fetchSignals = async () => {
     try {
+      setLoading(true);
       const res = await axios.get(`${API_BASE}/signals/${symbol}/${strategy}`);
       setSignals(res.data);
       signalsRef.current = res.data;
     } catch (err) {
       console.error('Signals error:', err);
+      setError('Failed to load signals');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -194,6 +202,7 @@ function App() {
       setStats(res.data);
     } catch (err) {
       console.error('Stats error:', err);
+      setError('Failed to load stats');
     }
   };
 
@@ -203,6 +212,7 @@ function App() {
       setEquityCurve(res.data);
     } catch (err) {
       console.error('Equity error:', err);
+      setError('Failed to load equity data');
     }
   };
 
@@ -408,6 +418,13 @@ function App() {
           </select>
         </div>
       </header>
+
+      {error && (
+        <div className="error-banner">
+          {error}
+          <button onClick={() => setError(null)}>×</button>
+        </div>
+      )}
 
       {stats && (
         <div className="stats-row">

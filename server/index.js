@@ -31,8 +31,12 @@ const MONGO_CRYPTO = `mongodb://${process.env.MONGO_CRYPTO_USER}:${process.env.M
 const conn1 = mongoose.createConnection(MONGO_VNPY);
 const conn2 = mongoose.createConnection(MONGO_CRYPTO);
 
-conn1.asPromise().then(() => console.log('Connected to vnpy'));
-conn2.asPromise().then(() => console.log('Connected to crypto_daily'));
+conn1.asPromise()
+  .then(() => console.log('Connected to vnpy'))
+  .catch(err => console.error('Failed to connect to vnpy:', err.message));
+conn2.asPromise()
+  .then(() => console.log('Connected to crypto_daily'))
+  .catch(err => console.error('Failed to connect to crypto_daily:', err.message));
 
 const barDataSchema = new mongoose.Schema({
   symbol: String,
@@ -121,6 +125,10 @@ app.get('/api/signals/:symbol/:strategy', async (req, res) => {
       record_type: 'daily_signal',
       position_action: { $in: ['open', 'close'] }
     }).sort({ date: 1 });
+    
+    if (!signals || signals.length === 0) {
+      return res.json([]);
+    }
     
     // Get total P&L from stats for scaling
     const latestSignal = signals[signals.length - 1];
