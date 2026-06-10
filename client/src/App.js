@@ -465,23 +465,29 @@ function App() {
         </div>
       )}
 
-      {strategyInfo && (
+      {strategyInfo && stats && (
         <div className="strategy-info-section">
           <div className="strategy-desc-box">
-            <div className="strategy-desc-text">
-              <span className="strategy-name">{strategyInfo.name}</span>
-              <span className="strategy-summary">{strategyInfo.summary}</span>
-              <span className="strategy-desc">{strategyInfo.description}</span>
+            <div className="strategy-desc-title">
+              {lang === 'zh' ? '策略介绍' : 'Strategy Introduction'}
+            </div>
+            <div className="strategy-desc-content">
+              <div className="strategy-desc-name">{strategyInfo.name}</div>
+              <div className="strategy-desc-summary">{strategyInfo.summary}</div>
+              <div className="strategy-desc-desc">{strategyInfo.description}</div>
+              {strategyInfo.execution_rule && (
+                <div className="strategy-desc-rule">{strategyInfo.execution_rule}</div>
+              )}
             </div>
           </div>
           <div className="strategy-meta-box">
             <div className="meta-item">
               <span className="meta-label">{T[lang].dataUpdate}</span>
-              <span className="meta-value">{strategyInfo.dataUpdateTime ? new Date(strategyInfo.dataUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+              <span className="meta-value">{stats.updateTime ? new Date(stats.updateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
             </div>
             <div className="meta-item">
               <span className="meta-label">{T[lang].signalUpdate}</span>
-              <span className="meta-value">{strategyInfo.signalUpdateTime ? new Date(strategyInfo.signalUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+              <span className="meta-value">{stats.updateTime ? new Date(stats.updateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
             </div>
           </div>
         </div>
