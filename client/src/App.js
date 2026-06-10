@@ -468,16 +468,15 @@ function App() {
       {strategyInfo && stats && (
         <div className="strategy-info-section">
           <div className="strategy-desc-box">
-            <div className="strategy-desc-title">
-              {lang === 'zh' ? '策略介绍' : 'Strategy Introduction'}
-            </div>
             <div className="strategy-desc-content">
-              <div className="strategy-desc-name">{strategyInfo.name}</div>
-              <div className="strategy-desc-summary">{strategyInfo.summary}</div>
-              <div className="strategy-desc-desc">{strategyInfo.description}</div>
-              {strategyInfo.execution_rule && (
-                <div className="strategy-desc-rule">{strategyInfo.execution_rule}</div>
-              )}
+              <div className="strategy-desc-tag strategy-desc-tag-blue">{strategyInfo.description}</div>
+              <div className="strategy-desc-tag strategy-desc-tag-red">{strategyInfo.summary}</div>
+              <div className="strategy-desc-tag strategy-desc-tag-purple">{strategyInfo.execution_rule}</div>
+              <div className="strategy-desc-tag strategy-desc-tag-gray">
+                {lang === 'zh' 
+                  ? `起始 ${stats.initialCapital}U | 当前 ${stats.currentCapital}U | 盈利 ${stats.totalPnl}U | 最大回撤 ${stats.maxDrawdown}%`
+                  : `Initial ${stats.initialCapital}U | Current ${stats.currentCapital}U | P&L ${stats.totalPnl}U | Max DD ${stats.maxDrawdown}%`}
+              </div>
             </div>
           </div>
           <div className="strategy-meta-box">
