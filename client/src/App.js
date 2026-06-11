@@ -23,7 +23,7 @@ const T = {
     currentCapital: '当前资金',
     totalPnl: '总盈亏',
     totalTrades: '总交易次数',
-    leverage: '杠杆',
+    leverage: '收益率',
     currentPosition: '当前持仓',
     maxDrawdown: '最大回撤',
     sharpe: '夏普比率',
@@ -54,7 +54,7 @@ const T = {
     currentCapital: 'Current Capital',
     totalPnl: 'Total P&L',
     totalTrades: 'Total Trades',
-    leverage: 'Leverage',
+    leverage: 'Yield',
     currentPosition: 'Current Position',
     maxDrawdown: 'Max Drawdown',
     sharpe: 'Sharpe',
@@ -430,16 +430,16 @@ function App() {
         <div className="stats-row">
           <div className="stat-card">
             <span className="stat-label">{T[lang].initialCapital}</span>
-            <span className="stat-value">${stats.initialCapital.toLocaleString()}</span>
+            <span className="stat-value">${Number(stats.initialCapital).toFixed(2)}</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].currentCapital}</span>
-            <span className="stat-value">${stats.currentCapital.toLocaleString()}</span>
+            <span className="stat-value">${Number(stats.currentCapital).toFixed(2)}</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].totalPnl}</span>
-            <span className={`stat-value ${stats.totalPnl >= 0 ? 'positive' : 'negative'}`}>
-              {stats.totalPnl >= 0 ? '+' : ''}${stats.totalPnl}
+            <span className={`stat-value ${Number(stats.totalPnl) >= 0 ? 'positive' : 'negative'}`}>
+              {Number(stats.totalPnl) >= 0 ? '+' : ''}${Number(stats.totalPnl).toFixed(2)}
             </span>
           </div>
           <div className="stat-card">
@@ -448,7 +448,7 @@ function App() {
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].leverage}</span>
-            <span className="stat-value">{stats.leverage}x</span>
+            <span className="stat-value">{Number(stats.leverage).toFixed(2)}x</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].currentPosition}</span>
@@ -456,11 +456,11 @@ function App() {
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].maxDrawdown}</span>
-            <span className="stat-value negative">-{stats.maxDrawdown}%</span>
+            <span className="stat-value negative">-{Number(stats.maxDrawdown).toFixed(2)}%</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].sharpe}</span>
-            <span className="stat-value">{stats.sharpeRatio}</span>
+            <span className="stat-value">{Number(stats.sharpeRatio).toFixed(2)}</span>
           </div>
         </div>
       )}
