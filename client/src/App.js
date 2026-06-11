@@ -448,7 +448,7 @@ function App() {
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].leverage}</span>
-            <span className="stat-value">{Number(stats.leverage).toFixed(2)}x</span>
+            <span className="stat-value">{Number(stats.totalReturn).toFixed(2)}%</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].currentPosition}</span>
