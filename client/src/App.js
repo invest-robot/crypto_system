@@ -176,6 +176,9 @@ function App() {
       const res = await axios.get(`${API_BASE}/strategies/${symbol}`);
       if (res.data.length > 0) {
         setStrategies(res.data);
+        if (!res.data.includes(strategy)) {
+          setStrategy(res.data[0]);
+        }
       }
     } catch (err) {
       console.error('Strategies error:', err);
