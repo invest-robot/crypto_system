@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createChart } from 'lightweight-charts';
 import axios from 'axios';
 import './App.css';
+import { DEMO_MODE, getDemoMarketData, getDemoStrategies, getDemoSignals, getDemoStats, getDemoEquity, getDemoStrategyInfo } from './demoData';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -155,6 +156,13 @@ function App() {
     try {
       setError(null);
       const range = TIME_RANGES[timeRange];
+      if (DEMO_MODE) {
+        const data = getDemoMarketData(symbol).data;
+        const cutoff = new Date('2026-06-11T08:00:00Z').getTime() - range.hours * 60 * 60 * 1000;
+        const filtered = data.filter(d => new Date(d.datetime).getTime() >= cutoff);
+        setMarketData(filtered);
+        return;
+      }
       const res = await axios.get(`${API_BASE}/market/${symbol}`, {
         params: {
           interval: chartInterval,
@@ -173,6 +181,14 @@ function App() {
 
   const fetchStrategies = async () => {
     try {
+      if (DEMO_MODE) {
+        const data = getDemoStrategies(symbol);
+        setStrategies(data);
+        if (!data.includes(strategy)) {
+          setStrategy(data[0]);
+        }
+        return;
+      }
       const res = await axios.get(`${API_BASE}/strategies/${symbol}`);
       if (res.data.length > 0) {
         setStrategies(res.data);
@@ -188,6 +204,12 @@ function App() {
   const fetchSignals = async () => {
     try {
       setLoading(true);
+      if (DEMO_MODE) {
+        const data = getDemoSignals(symbol, strategy);
+        setSignals(data);
+        signalsRef.current = data;
+        return;
+      }
       const res = await axios.get(`${API_BASE}/signals/${symbol}/${strategy}`);
       setSignals(res.data);
       signalsRef.current = res.data;
@@ -201,6 +223,10 @@ function App() {
 
   const fetchStats = async () => {
     try {
+      if (DEMO_MODE) {
+        setStats(getDemoStats(symbol, strategy));
+        return;
+      }
       const res = await axios.get(`${API_BASE}/stats/${symbol}/${strategy}`);
       setStats(res.data);
     } catch (err) {
@@ -211,6 +237,10 @@ function App() {
 
   const fetchEquity = async () => {
     try {
+      if (DEMO_MODE) {
+        setEquityCurve(getDemoEquity(symbol, strategy));
+        return;
+      }
       const res = await axios.get(`${API_BASE}/equity/${symbol}/${strategy}`);
       setEquityCurve(res.data);
     } catch (err) {
@@ -221,6 +251,10 @@ function App() {
 
   const fetchStrategyInfo = async () => {
     try {
+      if (DEMO_MODE) {
+        setStrategyInfo(getDemoStrategyInfo(strategy));
+        return;
+      }
       const res = await axios.get(`${API_BASE}/strategy-info/${symbol}/${strategy}`);
       setStrategyInfo(res.data);
     } catch (err) {
