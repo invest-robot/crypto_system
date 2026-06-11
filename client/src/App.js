@@ -452,7 +452,7 @@ function App() {
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].currentPosition}</span>
-            <span className="stat-value">{stats.currentPosition}</span>
+            <span className="stat-value">{Number(stats.currentPosition).toFixed(3)}</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">{T[lang].maxDrawdown}</span>
