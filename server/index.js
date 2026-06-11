@@ -86,8 +86,21 @@ const signalSchema = new mongoose.Schema({
 
 const Signal = conn2.model('Signal', signalSchema);
 
+const ethSignalSchema = new mongoose.Schema({}, { collection: 'eth_strategy', strict: false });
+const EthSignal = conn2.model('EthSignal', ethSignalSchema);
+
+const solSignalSchema = new mongoose.Schema({}, { collection: 'sol_strategy', strict: false });
+const SolSignal = conn2.model('SolSignal', solSignalSchema);
+
 const strategyInfoSchema = new mongoose.Schema({}, { collection: 'strategy_info', strict: false });
 const StrategyInfo = conn3.model('StrategyInfo', strategyInfoSchema);
+
+function getSignalModel(symbol) {
+  const s = symbol.toLowerCase();
+  if (s === 'ethusdt') return EthSignal;
+  if (s === 'solusdt') return SolSignal;
+  return Signal;
+}
 
 app.get('/api/market/:symbol', async (req, res) => {
   try {
@@ -117,8 +130,17 @@ app.get('/api/market/:symbol', async (req, res) => {
 app.get('/api/strategies/:symbol', async (req, res) => {
   try {
     const { symbol } = req.params;
-    const strategies = await Signal.distinct('strategy_id', { symbol: symbol.toLowerCase() });
-    res.json(strategies.length ? strategies : ['strategy_1', 'strategy_2']);
+    const Model = getSignalModel(symbol);
+    const strategies = await Model.distinct('strategy_id', { symbol: symbol.toLowerCase() });
+    if (strategies.length) {
+      res.json(strategies.sort());
+    } else if (symbol.toLowerCase() === 'ethusdt') {
+      res.json(['strategy_5']);
+    } else if (symbol.toLowerCase() === 'solusdt') {
+      res.json(['strategy_6']);
+    } else {
+      res.json(['strategy_1', 'strategy_2', 'strategy_3']);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -127,7 +149,8 @@ app.get('/api/strategies/:symbol', async (req, res) => {
 app.get('/api/signals/:symbol/:strategy', async (req, res) => {
   try {
     const { symbol, strategy } = req.params;
-    const signals = await Signal.find({
+    const Model = getSignalModel(symbol);
+    const signals = await Model.find({
       symbol: symbol.toLowerCase(),
       strategy_id: strategy,
       record_type: 'daily_signal',
@@ -233,11 +256,12 @@ app.get('/api/signals/:symbol/:strategy', async (req, res) => {
 app.get('/api/stats/:symbol/:strategy', async (req, res) => {
   try {
     const { symbol, strategy } = req.params;
+    const Model = getSignalModel(symbol);
     const query = {
       symbol: symbol.toLowerCase(),
       strategy_id: strategy
     };
-    const signals = await Signal.find(query).sort({ date: 1 });
+    const signals = await Model.find(query).sort({ date: 1 });
 
     if (signals.length === 0) {
       return res.json({
@@ -376,7 +400,8 @@ app.get('/api/strategy-info/:symbol/:strategy', async (req, res) => {
 app.get('/api/equity/:symbol/:strategy', async (req, res) => {
   try {
     const { symbol, strategy } = req.params;
-    const signals = await Signal.find({
+    const Model = getSignalModel(symbol);
+    const signals = await Model.find({
       symbol: symbol.toLowerCase(),
       strategy_id: strategy
     }).sort({ date: 1 });
