@@ -485,11 +485,11 @@ function App() {
           <div className="strategy-meta-box">
             <div className="meta-item">
               <span className="meta-label">{T[lang].dataUpdate}</span>
-              <span className="meta-value">{stats.updateTime ? new Date(stats.updateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+              <span className="meta-value">{stats.dataUpdateTime ? new Date(stats.dataUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
             </div>
             <div className="meta-item">
               <span className="meta-label">{T[lang].signalUpdate}</span>
-              <span className="meta-value">{stats.updateTime ? new Date(stats.updateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+              <span className="meta-value">{stats.signalUpdateTime ? new Date(stats.signalUpdateTime).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
             </div>
           </div>
         </div>

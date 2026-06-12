@@ -64,6 +64,10 @@ npm run server  # 后端 5000 端口
 npm run client  # 前端 3001 端口
 ```
 
+或使用脚本：
+- Windows: 双击 `start.bat` 启动，`stop.bat` 停止
+- Linux/Mac: 运行 `./start.sh` 启动，`./stop.sh` 停止
+
 ### 5. 打开浏览器
 访问 http://localhost:3001
 

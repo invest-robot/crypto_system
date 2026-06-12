@@ -3,9 +3,24 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 
+const requiredEnv = ['MONGO_VNPY_USER', 'MONGO_VNPY_PASS', 'MONGO_VNPY_HOST', 'MONGO_VNPY_DB', 'MONGO_CRYPTO_USER', 'MONGO_CRYPTO_PASS', 'MONGO_CRYPTO_HOST'];
+const missingEnv = requiredEnv.filter(key => !process.env[key]);
+if (missingEnv.length > 0) {
+  console.error('Missing required .env variables:', missingEnv.join(', '));
+  console.error('Copy .env.example to .env and fill in your MongoDB credentials.');
+  process.exit(1);
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err);
+});
 
 function calculateMDD(equities) {
   let cummax = [equities[0]];
@@ -355,7 +370,9 @@ app.get('/api/stats/:symbol/:strategy', async (req, res) => {
       sharpeRatio,
       annualReturn: annualReturn.toFixed(2),
       totalReturn,
-      updateTime: latest.data_updated_at || new Date()
+      updateTime: latest.data_updated_at || new Date(),
+      dataUpdateTime: latest.data_updated_at || null,
+      signalUpdateTime: latest.signal_updated_at || null
     };
 
     // Calculate MDD from database equity sequence
@@ -423,4 +440,21 @@ app.get('/api/equity/:symbol/:strategy', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Close the other process or change PORT in .env`);
+  } else {
+    console.error('Server error:', err);
+  }
+  process.exit(1);
+});
+
+process.on('SIGINT', () => {
+  console.log('\nShutting down gracefully...');
+  server.close(() => {
+    mongoose.disconnect();
+    process.exit(0);
+  });
+});
