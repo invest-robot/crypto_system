@@ -168,7 +168,6 @@ app.get('/api/signals/:symbol/:strategy', async (req, res) => {
     const signals = await Model.find({
       symbol: symbol.toLowerCase(),
       strategy_id: strategy,
-      record_type: 'daily_signal',
       position_action: { $in: ['open', 'close'] }
     }).sort({ date: 1 });
     
