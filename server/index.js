@@ -170,7 +170,7 @@ app.get('/api/signals/:symbol/:strategy', async (req, res) => {
       strategy_id: strategy,
       record_type: 'daily_signal',
       position_action: { $in: ['open', 'close'] }
-    }).sort({ date: 1 });
+    }).sort({ date: 1, execute_time: 1 });
     
     if (!signals || signals.length === 0) {
       return res.json([]);
@@ -181,76 +181,61 @@ app.get('/api/signals/:symbol/:strategy', async (req, res) => {
     const initialCapital = signals[0]?.initial_capital || 2000;
     const currentCapital = latestSignal?.equity || initialCapital;
     const totalPnlFromStats = currentCapital - initialCapital;
-    
-    const buyStack = [];
+
+    // Use running-position algorithm: track current position and average entry price
+    let runningPos = 0;
+    let avgEntryPrice = 0;
     let rawCumulativePnl = 0;
     const formatted = [];
-    
+
     signals.forEach(s => {
-      if (s.position_action === 'open') {
-        // Opening a position (either long buy or short sell)
-        const price = s.execution_price || s.price;
-        const qty = Math.abs(s.trade_qty);
-        
-        if (s.action === 'buy') {
-          // Opening LONG - buy now, expect sell higher later
-          buyStack.push({ price, qty });
-        } else if (s.action === 'sell') {
-          // Opening SHORT - sell now, expect buy lower later
-          buyStack.push({ price, qty, isShort: true });
-        }
-        
-        formatted.push({
-          execute_time: s.execute_time_global,
-          execute_time_global: s.execute_time_global,
-          execute_time_asia: s.execute_time_asia,
-          action: s.action,
-          quantity: qty,
-          execute_price: price,
-          pnl: 0,
-          cumulativePnl: 0,
-          positionAction: 'open'
-        });
-      } else if (s.position_action === 'close') {
-        // Closing a position
-        const closePrice = s.execution_price || s.price;
-        let closeQty = Math.abs(s.trade_qty);
-        let pnl = 0;
-        
-        // Match with opening trades
-        while (closeQty > 0 && buyStack.length > 0) {
-          let open = buyStack[buyStack.length - 1];
-          const matchQty = Math.min(closeQty, open.qty);
-          
-          if (open.isShort) {
-            // SHORT: profit = (open_price - close_price) * qty
-            pnl += (open.price - closePrice) * matchQty;
+      const price = s.execution_price || s.price;
+      const tradeQty = s.trade_qty || 0;
+      const posChange = tradeQty; // trade_qty is already signed
+      const newPos = runningPos + posChange;
+
+      let pnl = 0;
+
+      if (posChange !== 0) {
+        if (runningPos === 0) {
+          // Opening a brand new position
+          avgEntryPrice = price;
+        } else if (Math.sign(newPos) === Math.sign(runningPos) && newPos !== 0) {
+          // Adding to existing position in same direction
+          avgEntryPrice = (avgEntryPrice * Math.abs(runningPos) + price * Math.abs(posChange)) / Math.abs(newPos);
+        } else {
+          // Reducing or closing position - realize P&L
+          const closeQty = Math.min(Math.abs(posChange), Math.abs(runningPos));
+          if (runningPos > 0) {
+            pnl = (price - avgEntryPrice) * closeQty;
           } else {
-            // LONG: profit = (close_price - open_price) * qty
-            pnl += (closePrice - open.price) * matchQty;
+            pnl = (avgEntryPrice - price) * closeQty;
           }
-          
-          open.qty -= matchQty;
-          closeQty -= matchQty;
-          if (open.qty <= 0) buyStack.pop();
+          rawCumulativePnl += pnl;
+
+          if (Math.abs(newPos) < 0.0001) {
+            avgEntryPrice = 0;
+          } else {
+            // Reversed to opposite direction
+            avgEntryPrice = price;
+          }
         }
-        
-        rawCumulativePnl += pnl;
-        
-        formatted.push({
-          execute_time: s.execute_time_global,
-          execute_time_global: s.execute_time_global,
-          execute_time_asia: s.execute_time_asia,
-          action: s.action,
-          quantity: Math.abs(s.trade_qty),
-          execute_price: closePrice,
-          pnl: pnl,
-          cumulativePnl: rawCumulativePnl,
-          positionAction: 'close'
-        });
+        runningPos = newPos;
       }
+
+      formatted.push({
+        execute_time: s.execute_time_global,
+        execute_time_global: s.execute_time_global,
+        execute_time_asia: s.execute_time_asia,
+        action: s.action,
+        quantity: Math.abs(tradeQty),
+        execute_price: price,
+        pnl: pnl,
+        cumulativePnl: rawCumulativePnl,
+        positionAction: s.position_action || 'hold'
+      });
     });
-    
+
     // Scale P&L to match Total P&L from stats
     const scaleFactor = totalPnlFromStats / (rawCumulativePnl || 1);
     let scaledCumulative = 0;
