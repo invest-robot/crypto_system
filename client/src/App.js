@@ -555,7 +555,11 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {signals.slice(0, 10).map((sig, i) => {
+                {[...signals].sort((a, b) => {
+                  const ta = new Date(a.execute_time_global || 0).getTime();
+                  const tb = new Date(b.execute_time_global || 0).getTime();
+                  return tb - ta;
+                }).slice(0, 10).map((sig, i) => {
                   return (
                     <tr key={i}>
                       <td>{sig.execute_time_global}</td>
