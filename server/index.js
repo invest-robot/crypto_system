@@ -466,9 +466,9 @@ app.get('/api/strategy-info/:symbol/:strategy', async (req, res) => {
 
     res.json({
       name: info.strategy_id,
-      description: info.description || '',
-      summary: info.summary || '',
-      execution_rule: info.execution_rule || ''
+      description: info['介绍'] || info.description || '',
+      summary: info['杠杆'] || info.summary || '',
+      execution_rule: info['信号交易执行判断'] || info.execution_rule || ''
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
