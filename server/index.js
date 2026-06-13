@@ -170,73 +170,149 @@ app.get('/api/signals/:symbol/:strategy', async (req, res) => {
       strategy_id: strategy,
       record_type: 'daily_signal',
       position_action: { $in: ['open', 'close'] }
-    }).sort({ date: 1, execute_time: 1 });
-    
+    }).sort({ date: 1 });
+
     if (!signals || signals.length === 0) {
       return res.json([]);
     }
-    
+
     // Get total P&L from stats for scaling
     const latestSignal = signals[signals.length - 1];
     const initialCapital = signals[0]?.initial_capital || 2000;
     const currentCapital = latestSignal?.equity || initialCapital;
     const totalPnlFromStats = currentCapital - initialCapital;
 
-    // Use running-position algorithm: track current position and average entry price
-    let runningPos = 0;
-    let avgEntryPrice = 0;
+    // Determine strategy type from strategy_info (intraday_strategy uses running-position algorithm)
+    let strategyType = 'daily_strategy';
+    try {
+      const info = await StrategyInfo.findOne({ strategy_id: strategy, symbol: symbol.toLowerCase() });
+      if (info && info.strategy_type) {
+        strategyType = info.strategy_type;
+      }
+    } catch (err) {
+      // Ignore errors, default to daily_strategy
+    }
+    const useRunningPosition = strategyType === 'intraday_strategy';
+
+    const buyStack = [];
     let rawCumulativePnl = 0;
     const formatted = [];
 
     signals.forEach(s => {
-      const price = s.execution_price || s.price;
-      const tradeQty = s.trade_qty || 0;
-      const posChange = tradeQty; // trade_qty is already signed
-      const newPos = runningPos + posChange;
+      if (s.position_action === 'open') {
+        const price = s.execution_price || s.price;
+        const qty = Math.abs(s.trade_qty);
 
-      let pnl = 0;
-
-      if (posChange !== 0) {
-        if (runningPos === 0) {
-          // Opening a brand new position
-          avgEntryPrice = price;
-        } else if (Math.sign(newPos) === Math.sign(runningPos) && newPos !== 0) {
-          // Adding to existing position in same direction
-          avgEntryPrice = (avgEntryPrice * Math.abs(runningPos) + price * Math.abs(posChange)) / Math.abs(newPos);
-        } else {
-          // Reducing or closing position - realize P&L
-          const closeQty = Math.min(Math.abs(posChange), Math.abs(runningPos));
-          if (runningPos > 0) {
-            pnl = (price - avgEntryPrice) * closeQty;
-          } else {
-            pnl = (avgEntryPrice - price) * closeQty;
-          }
-          rawCumulativePnl += pnl;
-
-          if (Math.abs(newPos) < 0.0001) {
-            avgEntryPrice = 0;
-          } else {
-            // Reversed to opposite direction
-            avgEntryPrice = price;
-          }
+        if (s.action === 'buy') {
+          buyStack.push({ price, qty });
+        } else if (s.action === 'sell') {
+          buyStack.push({ price, qty, isShort: true });
         }
-        runningPos = newPos;
-      }
 
-      formatted.push({
-        execute_time: s.execute_time_global,
-        execute_time_global: s.execute_time_global,
-        execute_time_asia: s.execute_time_asia,
-        action: s.action,
-        quantity: Math.abs(tradeQty),
-        execute_price: price,
-        pnl: pnl,
-        cumulativePnl: rawCumulativePnl,
-        positionAction: s.position_action || 'hold'
-      });
+        formatted.push({
+          execute_time: s.execute_time_global,
+          execute_time_global: s.execute_time_global,
+          execute_time_asia: s.execute_time_asia,
+          action: s.action,
+          quantity: qty,
+          execute_price: price,
+          pnl: 0,
+          cumulativePnl: 0,
+          positionAction: 'open'
+        });
+      } else if (s.position_action === 'close') {
+        const closePrice = s.execution_price || s.price;
+        let closeQty = Math.abs(s.trade_qty);
+        let pnl = 0;
+
+        while (closeQty > 0 && buyStack.length > 0) {
+          let open = buyStack[buyStack.length - 1];
+          const matchQty = Math.min(closeQty, open.qty);
+
+          if (open.isShort) {
+            pnl += (open.price - closePrice) * matchQty;
+          } else {
+            pnl += (closePrice - open.price) * matchQty;
+          }
+
+          open.qty -= matchQty;
+          closeQty -= matchQty;
+          if (open.qty <= 0) buyStack.pop();
+        }
+
+        rawCumulativePnl += pnl;
+
+        formatted.push({
+          execute_time: s.execute_time_global,
+          execute_time_global: s.execute_time_global,
+          execute_time_asia: s.execute_time_asia,
+          action: s.action,
+          quantity: Math.abs(s.trade_qty),
+          execute_price: closePrice,
+          pnl: pnl,
+          cumulativePnl: rawCumulativePnl,
+          positionAction: 'close'
+        });
+      }
     });
 
-    // Scale P&L to match Total P&L from stats
+    if (useRunningPosition) {
+      // Intraday strategy: use running-position algorithm for accurate per-trade P&L
+      let runningPos = 0;
+      let avgEntryPrice = 0;
+      let intradayPnl = 0;
+      const sortedSignals = [...signals].sort((a, b) => {
+        const ta = new Date(a.execute_time || a.date).getTime();
+        const tb = new Date(b.execute_time || b.date).getTime();
+        return ta - tb;
+      });
+      const intradayFormatted = [];
+      sortedSignals.forEach(s => {
+        const price = s.execution_price || s.price;
+        const tradeQty = s.trade_qty || 0;
+        const posChange = tradeQty;
+        const newPos = runningPos + posChange;
+        let pnl = 0;
+        if (posChange !== 0) {
+          if (runningPos === 0) {
+            avgEntryPrice = price;
+          } else if (Math.sign(newPos) === Math.sign(runningPos) && newPos !== 0) {
+            avgEntryPrice = (avgEntryPrice * Math.abs(runningPos) + price * Math.abs(posChange)) / Math.abs(newPos);
+          } else {
+            const closeQty = Math.min(Math.abs(posChange), Math.abs(runningPos));
+            if (runningPos > 0) pnl = (price - avgEntryPrice) * closeQty;
+            else pnl = (avgEntryPrice - price) * closeQty;
+            intradayPnl += pnl;
+            avgEntryPrice = Math.abs(newPos) < 0.0001 ? 0 : price;
+          }
+          runningPos = newPos;
+        }
+        intradayFormatted.push({
+          execute_time: s.execute_time_global,
+          execute_time_global: s.execute_time_global,
+          execute_time_asia: s.execute_time_asia,
+          action: s.action,
+          quantity: Math.abs(tradeQty),
+          execute_price: price,
+          pnl: pnl,
+          cumulativePnl: intradayPnl,
+          positionAction: s.position_action || 'hold'
+        });
+      });
+      // Scale to match total P&L
+      const scaleFactor = totalPnlFromStats / (intradayPnl || 1);
+      let scaledCumulative = 0;
+      intradayFormatted.forEach(f => {
+        if (f.pnl !== 0) {
+          f.pnl = f.pnl * scaleFactor;
+          scaledCumulative += f.pnl;
+          f.cumulativePnl = scaledCumulative;
+        }
+      });
+      return res.json(intradayFormatted.reverse());
+    }
+
+    // Daily strategy: use standard open/close stack algorithm
     const scaleFactor = totalPnlFromStats / (rawCumulativePnl || 1);
     let scaledCumulative = 0;
     formatted.forEach((f, i) => {
@@ -246,7 +322,7 @@ app.get('/api/signals/:symbol/:strategy', async (req, res) => {
         f.cumulativePnl = scaledCumulative;
       }
     });
-    
+
     res.json(formatted.reverse());
   } catch (err) {
     res.status(500).json({ error: err.message });
