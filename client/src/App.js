@@ -363,7 +363,16 @@ function App() {
       lineWidth: 2,
     });
 
-    const equityData = equityCurve.map((e) => ({
+    const sorted = [...equityCurve].sort((a, b) => a.time - b.time);
+    const deduped = [];
+    for (const point of sorted) {
+      if (deduped.length > 0 && deduped[deduped.length - 1].time === point.time) {
+        deduped[deduped.length - 1] = point;
+      } else {
+        deduped.push(point);
+      }
+    }
+    const equityData = deduped.map((e) => ({
       time: e.time,
       value: e.equity,
     }));
