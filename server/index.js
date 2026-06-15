@@ -502,6 +502,12 @@ app.get('/api/equity/:symbol/:strategy', async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
+const path = require('path');
+const expressStatic = path.resolve(__dirname, '../client/build');
+app.use(express.static(expressStatic));
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(expressStatic, 'index.html'));
+});
 const server = app.listen(PORT, HOST, () => console.log(`Server running on ${HOST}:${PORT}`));
 
 server.on('error', (err) => {

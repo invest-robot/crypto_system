@@ -3,7 +3,7 @@ import { createChart } from 'lightweight-charts';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:5000/api`;
+const API_BASE = process.env.REACT_APP_API_URL || '/api';
 
 const TIME_RANGES = {
   '1D': { hours: 24, limit: 24 },
