@@ -2,20 +2,23 @@
 cd /d %~dp0
 echo Starting Crypto Signal System...
 echo.
-echo Starting Backend Server (port 5000)...
-start "Crypto-API" cmd /k "cd server && node index.js"
-timeout /t 3 /nobreak >nul
-echo Backend started on http://localhost:5000
+echo Building frontend...
+cd client
+call npm run build >nul 2>&1
+cd ..
 echo.
-echo Starting Frontend (0.0.0.0:3000)...
-start "Crypto-Client" cmd /k "cd client && npm start"
-timeout /t 5 /nobreak >nul
+echo Starting Server (port 3000)...
+start "Crypto-Server" cmd /k "cd server && node index.js"
+timeout /t 3 /nobreak >nul
+echo Server started on http://0.0.0.0:3000
 echo.
 echo ========================================
-echo Frontend: http://0.0.0.0:3000 (LAN accessible)
-echo Backend:  http://localhost:5000
+echo URL: http://0.0.0.0:3000 (single port, LAN+public)
 echo Test account: admin / crypto123
 echo ========================================
+echo.
+echo Close this window to stop the service
+pause
 echo.
 echo Close this window to stop all services
 pause
